@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Recipes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles/index.css') }}">
+    <script>
+
+        function toggleEdit(id) {
+            var contentDiv = document.getElementById(`content-${id}`);
+
+            if (contentDiv.className.includes("editMode")) {
+                contentDiv.classList.remove('editMode');
+                contentDiv.classList.add('inputDisabled');
+            } else {
+                contentDiv.classList.add('editMode');
+                contentDiv.classList.remove('inputDisabled');
+            }
+        }
+
+        async function deleteRecipe(id) {
+            fetch(`/delete/${id}`, {
+                method: 'DELETE'
+            }).then((_res) => {
+                alert("Record Succesfully Deleted")
+                window.location.reload();
+            })
+        }
+
+        async function updateValue(id, field) {
+            console.log('update', id, field)
+            var value = document.getElementById(`${field}-${id}`).value;
+            fetch(`/update/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    field,
+                    value
+                })
+            }).then((_res) => {
+                alert("Record Succesfully Updated")
+                // window.location.reload();
+            })
+        }
+
+    </script>
+</head>
+
+<body>
+    <h1 style="text-align: center">RECIPE TRACKER</h1>
+    <form action="{{ url_for('recipe') }}" method="post" class="input-form">
+        <label>Name</label> <input type="text" name="name" required><br>
+        <label>Time</label> <input type="number" name="time" required><br>
+        <label>Category</label>
+        {% with id="category" %}
+        {% include "dropdown_category.html" %}
+        {% endwith %}
+        <br>
+        <label>Difficulty</label>
+        {% with id="difficulty" %}
+        {% include "dropdown_difficulty.html" %}
+        {% endwith %}
+        <br>
+        <label>Country</label>
+        {% with id="country" %}
+        {% include "dropdown_country.html" %}
+        {% endwith %}
+        <br>
+        <label>Url</label> <input type="text" name="url" required><br>
+        <input type="submit" value="Submit">
+    </form>
+
+    <div class="main-container">
+        {% for i in recipes: %}
+        <div class="card">
+            <div class="container">
+                <img src="/static/images/edit.png" title="edit" class="edit" id="edit-{{i[0]}}"
+                    onclick="toggleEdit('{{i[0]}}')" />
+                <img src="/static/images/bin.png" title="remove" class="remove" onclick="deleteRecipe('{{i[0]}}')" />
+            
+                <h4>{{ i[1] }} <a href={{ i[5] }} target="_blank"><img class="button-update" src="/static/images/navigate.png"></a></h4>
+            <div class="inputDisabled" id="content-{{i[0]}}">
+                <label>Time (min)</label>
+                <br>
+                <input style="max-width: 50px;" type="number" value="{{ i[6] }}"
+                    id="time-{{i[0]}}" />
+                <img src="/static/images/update.png" title="update" id="buttonTime-{{i[0]}}"
+                    onclick="updateValue('{{i[0]}}', 'time')" class="button-update" />
+                <br>
+                <label>Country</label>
+                {% with id="country-" ~ i[0] , value=i[2] %}
+                    {% include "dropdown_country.html" %}
+                {% endwith %}
+                <img src="/static/images/update.png" title="update" id="buttonCountry-{{i[0]}}"
+                    onclick="updateValue('{{i[0]}}', 'country')" class="button-update" />
+
+                <label>Category</label>
+                {% with id="category-" ~ i[0] , value=i[3] %}
+                    {% include "dropdown_category.html" %}
+                {% endwith %}
+                <img src="/static/images/update.png" title="update" id="buttonCategory-{{i[0]}}"
+                    onclick="updateValue('{{i[0]}}', 'country')" class="button-update" />
+                
+                <label>Difficulty</label>
+                {% with id="difficulty-" ~ i[0] , value=i[4] %}
+                    {% include "dropdown_difficulty.html" %}
+                {% endwith %}
+                <img src="/static/images/update.png" title="update" id="buttonCountry-{{i[0]}}"
+                    onclick="updateValue('{{i[0]}}', 'country')" class="button-update" />
+                
+                <label>Url</label>
+                <br>
+                <input type="text" id="url-{{i[0]}}" class="inputDisabled" value={{ i[5] }} />
+                <img src="/static/images/update.png" title="update" id="buttonUrl-{{i[0]}}"
+                    onclick="updateValue('{{i[0]}}', 'url')" class="button-update" />
+            
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+
+</html>
